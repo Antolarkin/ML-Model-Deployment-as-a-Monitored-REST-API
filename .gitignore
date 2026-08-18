@@ -1,0 +1,50 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg-info/
+dist/
+build/
+*.egg
+
+# Virtual environment
+venv/
+env/
+.venv/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Environment variables
+.env
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Jupyter
+.ipynb_checkpoints/
+
+# ML models (large files — tracked separately if needed)
+# ml/saved_models/*.joblib
+
+# Logs
+*.log
+logs/
+
+# Docker
+docker-compose.override.yml
+
+# pytest
+.pytest_cache/
+htmlcov/
+.coverage
+
+# Distribution
+*.tar.gz
+*.whl
