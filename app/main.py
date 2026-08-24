@@ -4,7 +4,8 @@ from pathlib import Path
 
 import joblib
 import numpy as np
-from fastapi import FastAPI, HTTPException
+from app.models.schemas import PredictionInput
+from fastapi import FastAPI
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -31,19 +32,16 @@ def root() -> dict[str, str]:
 
 
 @app.post("/predict")
-def predict(features: dict) -> dict:
+def predict(payload: PredictionInput) -> dict[str, str | dict[str, float]]:
     model = app.state.model
     target_names = app.state.target_names
 
-    try:
-        feature_array = np.array([[
-            float(features["sepal_length"]),
-            float(features["sepal_width"]),
-            float(features["petal_length"]),
-            float(features["petal_width"]),
-        ]])
-    except (KeyError, TypeError, ValueError) as exc:
-        raise HTTPException(status_code=422, detail=f"Invalid input: {exc}") from exc
+    feature_array = np.array([[
+        payload.sepal_length,
+        payload.sepal_width,
+        payload.petal_length,
+        payload.petal_width,
+    ]])
 
     prediction_idx = model.predict(feature_array)[0]
     prediction_name = target_names[prediction_idx]
