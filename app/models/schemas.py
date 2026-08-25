@@ -6,3 +6,10 @@ class PredictionInput(BaseModel):
     sepal_width: float = Field(..., gt=0, le=10, description="Sepal width in cm (positive, max 10)")
     petal_length: float = Field(..., gt=0, le=10, description="Petal length in cm (positive, max 10)")
     petal_width: float = Field(..., gt=0, le=10, description="Petal width in cm (positive, max 10)")
+
+
+class PredictionOutput(BaseModel):
+    request_id: str
+    prediction: str
+    confidence: float
+    probabilities: dict[str, float]
