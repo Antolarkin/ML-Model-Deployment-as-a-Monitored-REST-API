@@ -13,3 +13,17 @@ class PredictionOutput(BaseModel):
     prediction: str
     confidence: float
     probabilities: dict[str, float]
+
+
+class PredictionBatchInput(BaseModel):
+    items: list[PredictionInput] = Field(
+        ...,
+        min_length=1,
+        max_length=100,
+        description="Batch of predictions (1-100 items)",
+    )
+
+
+class PredictionBatchOutput(BaseModel):
+    results: list[PredictionOutput]
+    batch_size: int

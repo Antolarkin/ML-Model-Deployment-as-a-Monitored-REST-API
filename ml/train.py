@@ -1,4 +1,6 @@
+import json
 import logging
+from datetime import datetime
 from pathlib import Path
 
 import joblib
@@ -15,6 +17,7 @@ logger = logging.getLogger(__name__)
 
 MODEL_PATH = Path("ml/saved_model/model.joblib")
 TARGET_NAMES_PATH = Path("ml/saved_model/target_names.joblib")
+MODEL_METADATA_PATH = Path("ml/saved_model/model_metadata.json")
 TEST_SIZE = 0.2
 RANDOM_STATE = 42
 
@@ -55,6 +58,13 @@ def save_target_names(target_names: list[str], output_path: Path) -> None:
     logger.info(f"Target names saved to {output_path}")
 
 
+def save_model_metadata(metadata: dict, output_path: Path) -> None:
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    with open(output_path, "w") as f:
+        json.dump(metadata, f, indent=2)
+    logger.info(f"Model metadata saved to {output_path}")
+
+
 def main() -> None:
     X, y, target_names = load_data()
     X_train, X_test, y_train, y_test = train_test_split(
@@ -62,9 +72,23 @@ def main() -> None:
     )
 
     model = train_model(X_train, y_train)
-    evaluate_model(model, X_test, y_test)
+    accuracy = evaluate_model(model, X_test, y_test)
     save_model(model, MODEL_PATH)
     save_target_names(target_names, TARGET_NAMES_PATH)
+
+    metadata = {
+        "model_type": "RandomForestClassifier",
+        "model_version": "1.0.0",
+        "training_date": datetime.now(datetime.UTC).isoformat().replace("+00:00", "Z"),
+        "expected_features": ["sepal_length", "sepal_width", "petal_length", "petal_width"],
+        "target_names": target_names,
+        "parameters": {
+            "n_estimators": 100,
+            "random_state": RANDOM_STATE,
+        },
+        "test_accuracy": accuracy,
+    }
+    save_model_metadata(metadata, MODEL_METADATA_PATH)
 
 
 if __name__ == "__main__":

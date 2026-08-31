@@ -1,3 +1,4 @@
+import json
 import logging
 import time
 import uuid
@@ -15,16 +16,20 @@ logging.getLogger("ml_api").setLevel(logging.INFO)
 
 MODEL_PATH = Path("ml/saved_model/model.joblib")
 TARGET_NAMES_PATH = Path("ml/saved_model/target_names.joblib")
+MODEL_METADATA_PATH = Path("ml/saved_model/model_metadata.json")
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     app.state.model = None
     app.state.target_names = None
+    app.state.model_info = None
     try:
         app.state.model = joblib.load(MODEL_PATH)
         app.state.target_names = joblib.load(TARGET_NAMES_PATH)
-        logger.info("Model and target names loaded at startup")
+        with open(MODEL_METADATA_PATH) as f:
+            app.state.model_info = json.load(f)
+        logger.info("Model, target names, and metadata loaded at startup")
     except Exception as exc:
         logger.error("Failed to load model at startup: %s", exc)
     yield
