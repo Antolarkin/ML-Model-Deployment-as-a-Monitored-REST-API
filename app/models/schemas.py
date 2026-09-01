@@ -1,5 +1,7 @@
 from pydantic import BaseModel, Field
 
+from app.config import settings
+
 
 class PredictionInput(BaseModel):
     sepal_length: float = Field(..., gt=0, le=10, description="Sepal length in cm (positive, max 10)")
@@ -19,8 +21,8 @@ class PredictionBatchInput(BaseModel):
     items: list[PredictionInput] = Field(
         ...,
         min_length=1,
-        max_length=100,
-        description="Batch of predictions (1-100 items)",
+        max_length=settings.MAX_BATCH_SIZE,
+        description=f"Batch of predictions (1-{settings.MAX_BATCH_SIZE} items)",
     )
 
 

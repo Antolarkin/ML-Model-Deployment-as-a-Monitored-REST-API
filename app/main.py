@@ -3,20 +3,16 @@ import logging
 import time
 import uuid
 from contextlib import asynccontextmanager
-from pathlib import Path
 
 import joblib
+from app.config import settings
 from app.logging_config import logger
 from app.routers.v1 import router as v1_router
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 
-logging.basicConfig(level=logging.INFO)
-logging.getLogger("ml_api").setLevel(logging.INFO)
-
-MODEL_PATH = Path("ml/saved_model/model.joblib")
-TARGET_NAMES_PATH = Path("ml/saved_model/target_names.joblib")
-MODEL_METADATA_PATH = Path("ml/saved_model/model_metadata.json")
+log_level = getattr(logging, settings.LOG_LEVEL.upper(), logging.INFO)
+logging.basicConfig(level=log_level)
 
 
 @asynccontextmanager
@@ -25,9 +21,9 @@ async def lifespan(app: FastAPI):
     app.state.target_names = None
     app.state.model_info = None
     try:
-        app.state.model = joblib.load(MODEL_PATH)
-        app.state.target_names = joblib.load(TARGET_NAMES_PATH)
-        with open(MODEL_METADATA_PATH) as f:
+        app.state.model = joblib.load(settings.MODEL_PATH)
+        app.state.target_names = joblib.load(settings.TARGET_NAMES_PATH)
+        with open(settings.MODEL_METADATA_PATH) as f:
             app.state.model_info = json.load(f)
         logger.info("Model, target names, and metadata loaded at startup")
     except Exception as exc:
@@ -36,7 +32,7 @@ async def lifespan(app: FastAPI):
     logger.info("Application shutting down")
 
 
-app = FastAPI(title="ML Model API", version="0.1.0", lifespan=lifespan)
+app = FastAPI(title=settings.API_TITLE, version="0.1.0", lifespan=lifespan)
 
 
 @app.middleware("http")

@@ -1,12 +1,11 @@
 import logging
 import time
 import uuid
-from pathlib import Path
 
-import joblib
 import numpy as np
 from fastapi import APIRouter, HTTPException, Request
 
+from app.config import settings
 from app.logging_config import logger
 from app.models.schemas import (
     PredictionBatchInput,
@@ -16,9 +15,6 @@ from app.models.schemas import (
 )
 
 router = APIRouter(prefix="/api/v1")
-
-MODEL_PATH = Path("ml/saved_model/model.joblib")
-TARGET_NAMES_PATH = Path("ml/saved_model/target_names.joblib")
 
 
 class InferenceError(Exception):
@@ -87,15 +83,21 @@ def predict_batch(request: Request, payload: PredictionBatchInput) -> dict:
     if model is None or target_names is None:
         raise HTTPException(status_code=503, detail="Model not loaded")
 
+    if len(payload.items) > settings.MAX_BATCH_SIZE:
+        raise HTTPException(
+            status_code=422,
+            detail=f"Batch size {len(payload.items)} exceeds maximum allowed size of {settings.MAX_BATCH_SIZE}",
+        )
+
     start_time = time.perf_counter()
 
     try:
         feature_array = _build_feature_array(payload.items)
 
-        # Run inference on the entire batch in one model call.
-        # This avoids repeated Python/model-call overhead and lets
-        # scikit-learn process the batch efficiently.
-        
+# Run inference on the entire batch in one model call.
+# This avoids repeated Python/model-call overhead and lets
+# scikit-learn process the batch efficiently.
+
         predictions_idx = model.predict(feature_array)
         probabilities = model.predict_proba(feature_array)
 
