@@ -8,6 +8,7 @@ import joblib
 from app.config import settings
 from app.logging_config import logger
 from app.routers.v1 import router as v1_router
+from app.routers.v2 import router as v2_router
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 
@@ -71,6 +72,7 @@ def root() -> dict[str, str]:
 
 
 app.include_router(v1_router)
+app.include_router(v2_router)
 
 
 @app.exception_handler(ValueError)
