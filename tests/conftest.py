@@ -2,6 +2,7 @@ import numpy as np
 import pytest
 from fastapi.testclient import TestClient
 
+from app.config import settings
 from app.main import app
 
 
@@ -27,4 +28,5 @@ def client():
         "parameters": {"n_estimators": 100, "random_state": 42},
         "test_accuracy": 1.0,
     }
+    test_client.headers["X-API-Key"] = settings.API_KEY
     return test_client

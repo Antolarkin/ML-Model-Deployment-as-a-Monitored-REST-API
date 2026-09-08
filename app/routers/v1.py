@@ -3,9 +3,10 @@ import time
 import uuid
 
 import numpy as np
-from fastapi import APIRouter, HTTPException, Request
+from fastapi import APIRouter, Depends, HTTPException, Request
 
 from app.config import settings
+from app.dependencies import enforce_rate_limit, verify_api_key
 from app.logging_config import logger
 from app.models.schemas import (
     PredictionBatchInput,
@@ -14,7 +15,10 @@ from app.models.schemas import (
     PredictionOutput,
 )
 
-router = APIRouter(prefix="/api/v1")
+router = APIRouter(
+    prefix="/api/v1",
+    dependencies=[Depends(verify_api_key), Depends(enforce_rate_limit)],
+)
 
 
 class InferenceError(Exception):

@@ -1,11 +1,15 @@
-from fastapi import APIRouter, HTTPException, Request
+from fastapi import APIRouter, Depends, HTTPException, Request
 
 from app.config import settings
+from app.dependencies import enforce_rate_limit, verify_api_key
 from app.logging_config import logger
 from app.models.schemas import PredictionInput, PredictionOutputV2
 from app.routers.v1 import _build_feature_array
 
-router = APIRouter(prefix="/api/v2")
+router = APIRouter(
+    prefix="/api/v2",
+    dependencies=[Depends(verify_api_key), Depends(enforce_rate_limit)],
+)
 
 
 @router.post("/predict", response_model=PredictionOutputV2)
