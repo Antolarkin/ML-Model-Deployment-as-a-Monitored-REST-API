@@ -429,19 +429,23 @@ curl http://127.0.0.1:8000/api/v1/health
 # Single prediction (v1)
 curl -X POST http://127.0.0.1:8000/api/v1/predict \
   -H "Content-Type: application/json" \
+  -H "X-API-Key: dev-secret-key" \
   -d '{"sepal_length":5.1,"sepal_width":3.5,"petal_length":1.4,"petal_width":0.2}'
 
 # Batch prediction (v1)
 curl -X POST http://127.0.0.1:8000/api/v1/predict-batch \
   -H "Content-Type: application/json" \
+  -H "X-API-Key: dev-secret-key" \
   -d '{"items":[{"sepal_length":5.1,"sepal_width":3.5,"petal_length":1.4,"petal_width":0.2}]}'
 
 # Model info
-curl http://127.0.0.1:8000/api/v1/model-info
+curl http://127.0.0.1:8000/api/v1/model-info \
+  -H "X-API-Key: dev-secret-key"
 
 # Breaking-change prediction (v2)
 curl -X POST http://127.0.0.1:8000/api/v2/predict \
   -H "Content-Type: application/json" \
+  -H "X-API-Key: dev-secret-key" \
   -d '{"sepal_length":5.1,"sepal_width":3.5,"petal_length":1.4,"petal_width":0.2}'
 ```
 
@@ -473,6 +477,13 @@ Configuration is loaded from `.env` (not committed) and `.env.example` (committe
 - `API_TITLE` — API title shown in `/docs`
 - `LOG_LEVEL` — Python log level (`INFO`, `DEBUG`, etc.)
 - `MAX_BATCH_SIZE` — maximum items allowed in a single batch request
+- `API_KEY` — API key required to authenticate requests (default: `dev-secret-key`)
+- `RATE_LIMIT_REQUESTS` — maximum requests per rate limit window
+- `RATE_LIMIT_WINDOW_SECONDS` — time window in seconds for rate limiting
+
+### API Key Authentication
+
+All protected endpoints require the header `X-API-Key`. The default key is `dev-secret-key`. To override it, set the `API_KEY` environment variable in `.env` or in your container/orchestration environment.
 
 ### Local development (without Docker)
 
