@@ -6,17 +6,17 @@
 
 ## 📋 Table of Contents
 
-- [Project Overview](#-project-overview)
-- [Problem Statement](#-problem-statement)
-- [Dataset & ML Problem](#-dataset--ml-problem)
-- [API Contract](#-api-contract)
-- [Architecture Flow](#-architecture-flow)
-- [Tech Stack](#-tech-stack)
-- [Planned Project Structure](#-planned-project-structure)
-- [20-Task Roadmap](#-20-task-roadmap)
-- [Checkpoints](#-checkpoints)
-- [Getting Started](#-getting-started)
-- [License](#-license)
+- [Project Overview](#project-overview)
+- [Problem Statement](#problem-statement)
+- [Dataset & ML Problem](#dataset--ml-problem)
+- [API Contract](#api-contract)
+- [Architecture Flow](#architecture-flow)
+- [Tech Stack](#tech-stack)
+- [Planned Project Structure](#planned-project-structure)
+- [20-Task Roadmap](#20-task-roadmap)
+- [Checkpoints](#checkpoints)
+- [Getting Started](#getting-started)
+- [License](#license)
 
 ---
 
@@ -349,36 +349,36 @@ ML-Model-Deployment-as-a-Monitored-REST-API/
 | Task | Title | What You Build |
 |------|-------|---------------|
 | ✅ 1 | Understand & Plan | This README — dataset, contract, architecture |
-| 2 | Project Setup | Folder structure, virtual environment, dependencies |
-| 3 | Train & Save Model | Train Iris classifier, save with joblib |
-| 4 | First FastAPI App | Basic `/health` endpoint running with Uvicorn |
+| ✅ 2 | Project Setup | Folder structure, virtual environment, dependencies |
+| ✅ 3 | Train & Save Model | Train Iris classifier, save with joblib |
+| ✅ 4 | First FastAPI App | Basic `/health` endpoint running with Uvicorn |
 
 ### Stage 2 — Core API (Tasks 5–9)
 
 | Task | Title | What You Build |
 |------|-------|---------------|
-| 5 | Load Model at Startup | Model loaded once, kept in memory |
-| 6 | Pydantic Schemas | Input/output validation models |
-| 7 | Prediction Endpoint | `POST /api/v1/predict` — **Checkpoint 1** |
-| 8 | Error Handling | Graceful error responses, edge cases |
-| 9 | Structured Logging | JSON logs with request_id, timestamps |
+| ✅ 5 | Load Model at Startup | Model loaded once, kept in memory |
+| ✅ 6 | Pydantic Schemas | Input/output validation models |
+| ✅ 7 | Prediction Endpoint | `POST /api/v1/predict` — **Checkpoint 1** |
+| ✅ 8 | Error Handling | Graceful error responses, edge cases |
+| ✅ 9 | Structured Logging | JSON logs with request_id, timestamps |
 
 ### Stage 3 — Features (Tasks 10–14)
 
 | Task | Title | What You Build |
 |------|-------|---------------|
-| 10 | API Versioning | `/api/v2/predict` without breaking v1 — **Checkpoint 2** |
-| 11 | Multiple Endpoints | `/health`, `/predict`, `/metrics` |
-| 12 | Configuration | Environment-based config management |
-| 13 | Automated Testing | pytest suite — correctness, failures, edge cases |
-| 14 | Test Coverage | Security tests, validation tests |
+| ✅ 10 | API Versioning | `/api/v2/predict` without breaking v1 — **Checkpoint 2** |
+| ✅ 11 | Multiple Endpoints | `/health`, `/predict`, `/metrics` |
+| ✅ 12 | Configuration | Environment-based config management |
+| ✅ 13 | Automated Testing | pytest suite — correctness, failures, edge cases |
+| ✅ 14 | Test Coverage | Security tests, validation tests |
 
 ### Stage 4 — Advanced (Tasks 15–17)
 
 | Task | Title | What You Build |
 |------|-------|---------------|
-| 15 | Docker | Containerize the application |
-| 16 | Docker Compose | API + Prometheus in one command |
+| ✅ 15 | Docker | Containerize the application |
+| ✅ 16 | Docker Compose | API + Prometheus in one command |
 | 17 | Security & CORS | API-key auth, CORS configuration |
 
 ### Stage 5 — Completion (Tasks 18–20)
@@ -406,17 +406,91 @@ ML-Model-Deployment-as-a-Monitored-REST-API/
 
 ## 🚦 Getting Started
 
-> **Note:** This README is the Task 1 deliverable. Code begins in Task 2.
+### Prerequisites
+
+- Docker Desktop (or Docker Engine + Docker Compose plugin)
+- Python 3.12+ (for local development and testing)
+
+### Running with Docker Compose
 
 ```bash
-# Clone the repository
-git clone https://github.com/Antolarkin/ML-Model-Deployment-as-a-Monitored-REST-API.git
+# Build the image and start the API
+docker compose up --build
 
-# Navigate into the project
-cd ML-Model-Deployment-as-a-Monitored-REST-API
+# The API is now available at http://127.0.0.1:8000
 ```
 
-Further setup instructions will be added as we complete each task.
+### Quick test
+
+```bash
+# Health check
+curl http://127.0.0.1:8000/api/v1/health
+
+# Single prediction (v1)
+curl -X POST http://127.0.0.1:8000/api/v1/predict \
+  -H "Content-Type: application/json" \
+  -d '{"sepal_length":5.1,"sepal_width":3.5,"petal_length":1.4,"petal_width":0.2}'
+
+# Batch prediction (v1)
+curl -X POST http://127.0.0.1:8000/api/v1/predict-batch \
+  -H "Content-Type: application/json" \
+  -d '{"items":[{"sepal_length":5.1,"sepal_width":3.5,"petal_length":1.4,"petal_width":0.2}]}'
+
+# Model info
+curl http://127.0.0.1:8000/api/v1/model-info
+
+# Breaking-change prediction (v2)
+curl -X POST http://127.0.0.1:8000/api/v2/predict \
+  -H "Content-Type: application/json" \
+  -d '{"sepal_length":5.1,"sepal_width":3.5,"petal_length":1.4,"petal_width":0.2}'
+```
+
+### Stopping the API
+
+```bash
+docker compose down
+```
+
+### Swapping the model without rebuilding
+
+The `ml/saved_model/` folder is mounted as a bind volume. To deploy a retrained model:
+
+```bash
+# Replace the model files on the host
+cp new_model.joblib ml/saved_model/model.joblib
+
+# Restart the API (no rebuild needed)
+docker compose restart api
+```
+
+### Environment variables
+
+Configuration is loaded from `.env` (not committed) and `.env.example` (committed template). Available variables:
+
+- `MODEL_PATH` — path to the trained model file
+- `TARGET_NAMES_PATH` — path to the target names file
+- `MODEL_METADATA_PATH` — path to the model metadata JSON
+- `API_TITLE` — API title shown in `/docs`
+- `LOG_LEVEL` — Python log level (`INFO`, `DEBUG`, etc.)
+- `MAX_BATCH_SIZE` — maximum items allowed in a single batch request
+
+### Local development (without Docker)
+
+```bash
+# Create virtual environment
+python -m venv venv
+source venv/bin/activate  # Linux/Mac
+# or
+venv\Scripts\activate  # Windows
+
+# Install dependencies
+pip install -r requirements.txt
+
+# Run the API
+python -m uvicorn app.main:app --host 127.0.0.1 --port 8000
+```
+
+> **Note:** Further setup instructions will be added as we complete each task.
 
 ---
 
