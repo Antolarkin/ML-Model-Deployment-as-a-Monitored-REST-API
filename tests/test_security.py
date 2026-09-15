@@ -1,6 +1,7 @@
 from fastapi.testclient import TestClient
 
 from app.config import settings
+from app.dependencies import _request_log
 from app.main import app
 
 
@@ -39,6 +40,29 @@ def test_unexpected_extra_field_is_forbidden(client):
     }
     response = client.post("/api/v1/predict", json=payload)
     assert response.status_code == 422
+
+
+def test_health_endpoint_remains_available_after_rate_limit(client):
+    payload = {
+        "sepal_length": 5.1,
+        "sepal_width": 3.5,
+        "petal_length": 1.4,
+        "petal_width": 0.2,
+    }
+    _request_log.clear()
+    original_limit = settings.RATE_LIMIT_REQUESTS
+    settings.RATE_LIMIT_REQUESTS = 1
+
+    try:
+        client.post("/api/v1/predict", json=payload)
+        limited_response = client.post("/api/v1/predict", json=payload)
+        health_response = client.get("/api/v1/health")
+
+        assert limited_response.status_code == 429
+        assert health_response.status_code == 200
+    finally:
+        settings.RATE_LIMIT_REQUESTS = original_limit
+        _request_log.clear()
 
 
 def test_rate_limit_exceeded_returns_429(client):

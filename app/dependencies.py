@@ -16,6 +16,9 @@ async def verify_api_key(request: Request):
 
 
 async def enforce_rate_limit(request: Request):
+    if request.url.path.endswith("/health"):
+        return
+
     api_key = request.headers.get("X-API-Key", "anonymous")
     now = perf_counter()
     window = settings.RATE_LIMIT_WINDOW_SECONDS
