@@ -12,6 +12,7 @@ from app.routers.v2 import router as v2_router
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from prometheus_fastapi_instrumentator import Instrumentator
 
 log_level = getattr(logging, settings.LOG_LEVEL.upper(), logging.INFO)
 logging.basicConfig(level=log_level)
@@ -34,6 +35,10 @@ async def lifespan(app: FastAPI):
     logger.info("Application shutting down")
 
 app = FastAPI(title=settings.API_TITLE, version="0.1.0", lifespan=lifespan)
+
+instrumentator = Instrumentator()
+instrumentator.instrument(app)
+instrumentator.expose(app, include_in_schema=False)
 
 _original_openapi = app.openapi
 

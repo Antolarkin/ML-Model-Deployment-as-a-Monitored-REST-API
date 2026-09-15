@@ -3,6 +3,7 @@ from fastapi import APIRouter, Depends, HTTPException, Request
 from app.config import settings
 from app.dependencies import enforce_rate_limit, verify_api_key
 from app.logging_config import logger
+from app.metrics import record_successful_prediction
 from app.models.schemas import PredictionInput, PredictionOutputV2
 from app.routers.v1 import _build_feature_array
 
@@ -29,6 +30,8 @@ def predict(request: Request, payload: PredictionInput) -> dict:
         probabilities = model.predict_proba(feature_array)[0]
         class_probabilities = {name: float(prob) for name, prob in zip(target_names, probabilities)}
         confidence_score = float(max(probabilities))
+
+        record_successful_prediction(prediction_name)
 
         logger.info(
             "v2 Prediction successful | request_id=%s | prediction=%s | confidence_score=%.4f",
