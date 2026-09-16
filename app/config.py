@@ -1,9 +1,11 @@
 from pathlib import Path
 
-from pydantic_settings import BaseSettings
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
+    model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8")
+
     MODEL_PATH: Path = Path("ml/saved_model/model.joblib")
     TARGET_NAMES_PATH: Path = Path("ml/saved_model/target_names.joblib")
     MODEL_METADATA_PATH: Path = Path("ml/saved_model/model_metadata.json")
@@ -14,10 +16,6 @@ class Settings(BaseSettings):
     CORS_ORIGINS: list[str] = ["http://localhost:3000", "http://127.0.0.1:3000"]
     RATE_LIMIT_REQUESTS: int = 100
     RATE_LIMIT_WINDOW_SECONDS: int = 60
-
-    class Config:
-        env_file = ".env"
-        env_file_encoding = "utf-8"
 
 
 settings = Settings()

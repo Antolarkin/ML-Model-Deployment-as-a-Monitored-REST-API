@@ -1,0 +1,20 @@
+services:
+  - type: web
+    name: ml-model-api
+    runtime: docker
+    plan: free
+    region: oregon
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /metrics
+    autoDeployTrigger: checksPass
+    envVars:
+      - key: API_KEY
+        generateValue: true
+      - key: LOG_LEVEL
+        value: INFO
+      - key: MAX_BATCH_SIZE
+        value: "100"
+      - key: RATE_LIMIT_REQUESTS
+        value: "100"
+      - key: RATE_LIMIT_WINDOW_SECONDS
+        value: "60"

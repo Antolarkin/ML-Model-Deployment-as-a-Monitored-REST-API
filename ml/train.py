@@ -1,6 +1,6 @@
 import json
 import logging
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 
 import joblib
@@ -42,27 +42,27 @@ def train_model(X_train: np.ndarray, y_train: np.ndarray) -> Pipeline:
 def evaluate_model(model: Pipeline, X_test: np.ndarray, y_test: np.ndarray) -> float:
     y_pred = model.predict(X_test)
     accuracy = accuracy_score(y_test, y_pred)
-    logger.info(f"Model accuracy on test set: {accuracy:.4f}")
+    logger.info("Model accuracy on test set: %.4f", accuracy)
     return accuracy
 
 
 def save_model(model: Pipeline, output_path: Path) -> None:
     output_path.parent.mkdir(parents=True, exist_ok=True)
     joblib.dump(model, output_path)
-    logger.info(f"Model saved to {output_path}")
+    logger.info("Model saved to %s", output_path)
 
 
 def save_target_names(target_names: list[str], output_path: Path) -> None:
     output_path.parent.mkdir(parents=True, exist_ok=True)
     joblib.dump(target_names, output_path)
-    logger.info(f"Target names saved to {output_path}")
+    logger.info("Target names saved to %s", output_path)
 
 
 def save_model_metadata(metadata: dict, output_path: Path) -> None:
     output_path.parent.mkdir(parents=True, exist_ok=True)
-    with open(output_path, "w") as f:
-        json.dump(metadata, f, indent=2)
-    logger.info(f"Model metadata saved to {output_path}")
+    with output_path.open("w", encoding="utf-8") as metadata_file:
+        json.dump(metadata, metadata_file, indent=2)
+    logger.info("Model metadata saved to %s", output_path)
 
 
 def main() -> None:
@@ -79,7 +79,7 @@ def main() -> None:
     metadata = {
         "model_type": "RandomForestClassifier",
         "model_version": "1.0.0",
-        "training_date": datetime.now(datetime.UTC).isoformat().replace("+00:00", "Z"),
+        "training_date": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
         "expected_features": ["sepal_length", "sepal_width", "petal_length", "petal_width"],
         "target_names": target_names,
         "parameters": {

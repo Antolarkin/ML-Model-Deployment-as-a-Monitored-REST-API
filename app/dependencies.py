@@ -16,7 +16,7 @@ async def verify_api_key(request: Request):
 
 
 async def enforce_rate_limit(request: Request):
-    if request.url.path.endswith("/health"):
+    if request.url.path == "/api/v1/health":
         return
 
     api_key = request.headers.get("X-API-Key", "anonymous")

@@ -1,11 +1,10 @@
 from fastapi import APIRouter, Depends, HTTPException, Request
 
-from app.config import settings
 from app.dependencies import enforce_rate_limit, verify_api_key
+from app.features import build_feature_array
 from app.logging_config import logger
 from app.metrics import record_successful_prediction
 from app.models.schemas import PredictionInput, PredictionOutputV2
-from app.routers.v1 import _build_feature_array
 
 router = APIRouter(
     prefix="/api/v2",
@@ -23,7 +22,7 @@ def predict(request: Request, payload: PredictionInput) -> dict:
         raise HTTPException(status_code=503, detail="Model not loaded")
 
     try:
-        feature_array = _build_feature_array([payload])
+        feature_array = build_feature_array([payload])
 
         prediction_idx = int(model.predict(feature_array)[0])
         prediction_name = target_names[prediction_idx]

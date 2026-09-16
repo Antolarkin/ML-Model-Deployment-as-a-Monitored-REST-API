@@ -98,17 +98,27 @@ Result after the fix: **1 passed**
 
 ```powershell
 pytest -q
-python -m compileall -q app scripts tests
+python -m compileall -q app ml scripts tests
 docker compose ps
 ```
 
 Result:
 
-- Unit and regression suite: **23 passed, 4 integration tests skipped by default**
+- Unit and regression suite: **25 passed, 4 integration tests skipped by default**
 - Container integration suite: **4 passed**
 - Python compilation: passed
-- Compose service: running and reachable on port 8000
+- Compose service: running and reachable on port 8000 with Docker health status `healthy`
+- Clean empty-model-mount startup: health, prediction, and metrics all returned `200`
 - Load test: 100/100 successful requests
+
+## Final Polish Findings
+
+The final Docker build and clean-start checks found and fixed two issues that unit tests did not cover:
+
+1. `ml/train.py` used `datetime.UTC`, which failed in the Docker runtime. It now uses `datetime.now(timezone.utc)`.
+2. `scripts/start_api.py` was launched as a file, which put `/app/scripts` on `sys.path` and prevented importing `app`. The launcher now resolves and inserts the project root before importing application modules.
+
+The final clean-load result was 100 requests at concurrency 20, 30.77 requests/second, 0 failures, 747.94 ms p95 latency, and healthy post-load health and metrics responses.
 
 ## Reference Practices Used
 

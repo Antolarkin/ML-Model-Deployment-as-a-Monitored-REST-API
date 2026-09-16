@@ -11,7 +11,6 @@ from app.routers.v1 import router as v1_router
 from app.routers.v2 import router as v2_router
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
 from prometheus_fastapi_instrumentator import Instrumentator
 
 log_level = getattr(logging, settings.LOG_LEVEL.upper(), logging.INFO)
@@ -26,13 +25,14 @@ async def lifespan(app: FastAPI):
     try:
         app.state.model = joblib.load(settings.MODEL_PATH)
         app.state.target_names = joblib.load(settings.TARGET_NAMES_PATH)
-        with open(settings.MODEL_METADATA_PATH) as f:
-            app.state.model_info = json.load(f)
+        with settings.MODEL_METADATA_PATH.open(encoding="utf-8") as metadata_file:
+            app.state.model_info = json.load(metadata_file)
         logger.info("Model, target names, and metadata loaded at startup")
-    except Exception as exc:
-        logger.error("Failed to load model at startup: %s", exc)
+    except Exception:
+        logger.exception("Failed to load model at startup")
+        raise
     yield
-    logger.info("Application shutting down")
+
 
 app = FastAPI(title=settings.API_TITLE, version="0.1.0", lifespan=lifespan)
 
@@ -107,12 +107,3 @@ def root() -> dict[str, str]:
 
 app.include_router(v1_router)
 app.include_router(v2_router)
-
-
-@app.exception_handler(ValueError)
-async def value_error_handler(request: Request, exc: ValueError):
-    logger.error("ValueError raised | request_id=%s | error=%s", request.state.request_id, exc)
-    return JSONResponse(
-        status_code=500,
-        content={"detail": "Prediction failed"},
-    )

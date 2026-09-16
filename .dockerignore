@@ -1,45 +1,13 @@
-# Python
-__pycache__/
-*.py[cod]
-*$py.class
-*.so
-*.egg-info/
-dist/
-build/
-*.egg
 venv/
-env/
-.venv/
-
-# IDE
-.vscode/
-.idea/
-*.swp
-*.swo
-*~
-
-# Environment variables
 .env
-
-# OS files
-.DS_Store
-Thumbs.db
-
-# Jupyter
-.ipynb_checkpoints/
-
-# Logs
+__pycache__/
+.git/
+.github/
 *.log
 logs/
-
-# Docker
-docker-compose.override.yml
-
-# pytest
-.pytest_cache/
-htmlcov/
-.coverage
-
-# Distribution
-*.tar.gz
-*.whl
+tests/
+*.md
+ml/saved_model/*.joblib
+ml/model_template/
+.idea/
+.vscode/

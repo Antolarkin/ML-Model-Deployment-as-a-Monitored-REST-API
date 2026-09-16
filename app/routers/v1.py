@@ -1,12 +1,11 @@
-import logging
 import time
 import uuid
 
 import numpy as np
 from fastapi import APIRouter, Depends, HTTPException, Request
 
-from app.config import settings
 from app.dependencies import enforce_rate_limit, verify_api_key
+from app.features import build_feature_array
 from app.logging_config import logger
 from app.metrics import record_successful_prediction
 from app.models.schemas import (
@@ -20,18 +19,6 @@ router = APIRouter(
     prefix="/api/v1",
     dependencies=[Depends(verify_api_key), Depends(enforce_rate_limit)],
 )
-
-
-class InferenceError(Exception):
-    pass
-
-
-def _build_feature_array(items: list[PredictionInput]) -> np.ndarray:
-    """Convert validated inputs into a 2D array for scikit-learn batch inference."""
-    return np.array([
-        [item.sepal_length, item.sepal_width, item.petal_length, item.petal_width]
-        for item in items
-    ])
 
 
 @router.get("/health")
@@ -50,7 +37,7 @@ def predict(request: Request, payload: PredictionInput) -> dict:
         raise HTTPException(status_code=503, detail="Model not loaded")
 
     try:
-        feature_array = _build_feature_array([payload])
+        feature_array = build_feature_array([payload])
 
         prediction_idx = int(model.predict(feature_array)[0])
         prediction_name = target_names[prediction_idx]
@@ -73,9 +60,6 @@ def predict(request: Request, payload: PredictionInput) -> dict:
             "confidence": confidence,
             "probabilities": class_probabilities,
         }
-    except InferenceError as exc:
-        logger.error("Inference failed | request_id=%s | error=%s", request_id, exc)
-        raise HTTPException(status_code=500, detail="Prediction failed") from exc
     except Exception as exc:
         logger.error("Unexpected error during prediction | request_id=%s | error=%s", request_id, exc)
         raise HTTPException(status_code=500, detail="Prediction failed") from exc
@@ -90,20 +74,10 @@ def predict_batch(request: Request, payload: PredictionBatchInput) -> dict:
     if model is None or target_names is None:
         raise HTTPException(status_code=503, detail="Model not loaded")
 
-    if len(payload.items) > settings.MAX_BATCH_SIZE:
-        raise HTTPException(
-            status_code=422,
-            detail=f"Batch size {len(payload.items)} exceeds maximum allowed size of {settings.MAX_BATCH_SIZE}",
-        )
-
     start_time = time.perf_counter()
 
     try:
-        feature_array = _build_feature_array(payload.items)
-
-# Run inference on the entire batch in one model call.
-# This avoids repeated Python/model-call overhead and lets
-# scikit-learn process the batch efficiently.
+        feature_array = build_feature_array(payload.items)
 
         predictions_idx = model.predict(feature_array)
         probabilities = model.predict_proba(feature_array)
@@ -147,9 +121,3 @@ def model_info(request: Request) -> dict:
     if model_info is None:
         raise HTTPException(status_code=503, detail="Model metadata not loaded")
     return model_info
-
-
-# v2 planning: if we need to add extra fields to the predict response
-# without breaking existing v1 clients, create a new router at prefix="/api/v2".
-# Candidate additions: model_version, prediction_id, processing_time_ms.
-# v1 contract remains untouched so existing clients continue to work.

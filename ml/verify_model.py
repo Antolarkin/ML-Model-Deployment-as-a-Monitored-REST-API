@@ -19,7 +19,7 @@ def main() -> None:
 
     model = joblib.load(MODEL_PATH)
     target_names = joblib.load(TARGET_NAMES_PATH)
-    logger.info(f"Model loaded from {MODEL_PATH}")
+    logger.info("Model loaded from %s", MODEL_PATH)
 
     sample = np.array([[5.1, 3.5, 1.4, 0.2]])
     prediction_idx = model.predict(sample)[0]
@@ -27,10 +27,10 @@ def main() -> None:
     probabilities = model.predict_proba(sample)[0]
     class_probabilities = {name: float(prob) for name, prob in zip(target_names, probabilities)}
 
-    sample_str = f"[[{sample[0][0]} {sample[0][1]}, {sample[0][2]}, {sample[0][3]}]]"
-    print(f"Prediction for sample {sample_str}")
-    print(f"Prediction: {prediction_name}")
-    print(f"Probabilities: {class_probabilities}")
+    sample_str = f"[[{sample[0][0]}, {sample[0][1]}, {sample[0][2]}, {sample[0][3]}]]"
+    logger.info("Prediction for sample %s", sample_str)
+    logger.info("Prediction: %s", prediction_name)
+    logger.info("Probabilities: %s", class_probabilities)
 
 
 if __name__ == "__main__":
