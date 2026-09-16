@@ -438,20 +438,6 @@ A public URL was not created automatically in this environment because no Render
 
 This project showed me that serving a model is a system-design problem, not only a machine-learning problem. A useful API needs stable contracts, validation before inference, consistent request tracing, and clear failure behavior. Docker makes the runtime reproducible, but model artifacts and startup behavior still need explicit handling. Security controls such as API keys, CORS, and rate limits protect the service, while Prometheus metrics and load testing reveal behavior that unit tests cannot show. Versioning lets the API evolve without silently breaking existing clients, and automated tests make each change reviewable instead of relying on manual browser checks.
 
-## Self-Assessment
-
-### Can I explain the request flow end to end?
-
-Yes. A request enters the container through Uvicorn, receives a request ID from middleware, passes API-key and rate-limit dependencies, is validated by Pydantic, is converted into a numeric feature array, is evaluated by the in-memory model, and then produces a validated JSON response. The same path writes a structured log and updates Prometheus counters and histograms.
-
-### Is the README sufficient for onboarding?
-
-Yes, for a developer with the stated Python and Docker prerequisites. It provides the actual project layout, setup commands, endpoint examples, configuration variables, test commands, deployment options, and the model-swap workflow.
-
-### What am I least confident explaining in an interview?
-
-The current rate limiter is intentionally in-memory and is correct for one Uvicorn process. If the service is scaled to multiple workers or containers, each process would maintain a separate request window. A production multi-instance deployment would need a shared store such as Redis or a platform rate-limiting layer.
-
 ## References
 
 - [Made-With-ML](https://github.com/GokuMohandas/Made-With-ML)
